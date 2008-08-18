@@ -145,6 +145,10 @@ module AWS
           find(name, options).object_cache
         end
         
+        def common_prefixes(name= nil, options = {})
+          find(name, options).common_prefix_cache
+        end
+        
         # Deletes the bucket named <tt>name</tt>.
         #
         # All objects in the bucket must be deleted before the bucket can be deleted. If the bucket is not empty, 
@@ -182,13 +186,14 @@ module AWS
           end
       end
       
-      attr_reader :object_cache #:nodoc:
+      attr_reader :object_cache, :common_prefix_cache #:nodoc:
       
       include Enumerable
       
       def initialize(attributes = {}) #:nodoc:
         super
         @object_cache = []
+        @common_prefix_cache = []
         build_contents!
       end
       
@@ -243,6 +248,18 @@ module AWS
         object_cache
       end
       
+      def common_prefixes(options = {})
+        if options.is_a?(Hash)
+          reload = !options.empty?
+        else
+          reload = options
+          options = {}
+        end
+        
+        reload!(options) if reload || common_prefix_cache.empty?
+        common_prefix_cache
+      end
+      
       # Iterates over the objects in the bucket.
       #
       #   bucket.each do |object|
@@ -255,7 +272,7 @@ module AWS
       
       # Returns true if there are no objects in the bucket.
       def empty?
-        objects.empty?
+        objects.empty? && common_prefixes.empty?
       end
       
       # Returns the number of objects in the bucket.
@@ -293,6 +310,12 @@ module AWS
           attributes.delete('contents').each do |content|
             add new_object(content)
           end
+          
+          if attributes['common_prefixes']
+            attributes.delete('common_prefixes').each do |common_prefix|
+              common_prefix_cache << common_prefix['prefix']
+            end
+          end
         end
         
         def has_contents?
@@ -312,6 +335,11 @@ module AWS
           object_cache.clear
           self.class.objects(name, options).each do |object| 
             add object
+          end
+          
+          common_prefix_cache.clear
+          self.class.common_prefixes(name, options).each do |common_prefix|
+            common_prefix_cache << common_prefix
           end
         end         
     end

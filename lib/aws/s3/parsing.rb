@@ -76,7 +76,7 @@ module AWS
               # If a tag is empty, makes its content nil
               'suppressempty' => nil,
               # Force nested elements to be put into an array, even if there is only one of them
-              'forcearray'    => ['Contents', 'Bucket', 'Grant']
+              'forcearray'    => ['Contents', 'Bucket', 'Grant', 'CommonPrefixes']
             }
           end
           

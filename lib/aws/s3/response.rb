@@ -50,7 +50,7 @@ module AWS
         end
         memoized :error
     
-        def parsed
+        def parsed()
           # XmlSimple is picky about what kind of object it parses, so we pass in body rather than self
           Parsing::XmlParser.new(body)
         end
