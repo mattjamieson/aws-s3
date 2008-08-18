@@ -38,6 +38,17 @@ class BucketTest < Test::Unit::TestCase
     assert bucket['tongue_overload.jpg']
   end
   
+  def test_bucket_with_one_file_and_one_common_prefix
+    mock_connection_for(Bucket, :returns => {:body => Fixtures::Buckets.bucket_with_one_key_and_one_common_prefix, :code => 200})
+    bucket = Bucket.find('marcel_molina')
+    assert !bucket.empty?
+    assert_equal 1, bucket.size
+    assert_equal 1, bucket.common_prefixes.size
+    assert_equal %w(beluga_baby.jpg), bucket.objects.map {|object| object.key}.sort
+    assert bucket['beluga_baby.jpg']
+    assert_equal %w(ton), bucket.common_prefixes.sort
+  end
+  
   def test_bucket_path
     assert_equal '/bucket_name?max-keys=2', Bucket.send(:path, 'bucket_name', :max_keys => 2)
     assert_equal '/bucket_name', Bucket.send(:path, 'bucket_name', {})    
